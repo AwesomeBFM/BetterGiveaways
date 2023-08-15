@@ -4,12 +4,13 @@ import dev.awesomebfm.bettergiveaways.dto.CreateGiveawayDto;
 import dev.awesomebfm.bettergiveaways.entity.Giveaway;
 import dev.awesomebfm.bettergiveaways.model.SlashCommand;
 import dev.awesomebfm.bettergiveaways.service.GiveawayService;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
@@ -46,16 +47,29 @@ public class CreateGiveawayCommand implements SlashCommand {
 
     @Override
     public void execute(SlashCommandInteractionEvent e) {
+
+        Long required_role;
+        try {
+            required_role = e.getOption("required_role").getAsLong();
+        } catch (NullPointerException ex) {
+            required_role = null;
+        }
+
+
         CreateGiveawayDto dto = new CreateGiveawayDto(
                 e.getOption("prize").getAsString(),
                 e.getOption("winners").getAsInt(),
                 e.getOption("end").getAsString(),
                 e.getOption("donor").getAsUser().getIdLong(),
                 e.getGuild().getIdLong(),
-                e.getOption("required_role").getAsLong()
+                required_role
         );
 
-        giveawayService.createGiveaway(dto);
+        Giveaway giveaway = giveawayService.createGiveaway(dto);
+        EmbedBuilder embedBuilder = giveawayService.generateGiveawayEmbed(giveaway);
+        e.replyEmbeds(embedBuilder.build()).addActionRow(
+                Button.success("giveaway_" + giveaway.getId(), "Enter Giveaway!")
+        ).queue();
 
 
     }

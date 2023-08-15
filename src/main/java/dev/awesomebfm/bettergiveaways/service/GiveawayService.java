@@ -3,14 +3,20 @@ package dev.awesomebfm.bettergiveaways.service;
 import dev.awesomebfm.bettergiveaways.dto.CreateGiveawayDto;
 import dev.awesomebfm.bettergiveaways.entity.Giveaway;
 import dev.awesomebfm.bettergiveaways.repository.GiveawayRepository;
+import dev.awesomebfm.bettergiveaways.entity.GiveawayEntry;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,14 +39,32 @@ public class GiveawayService {
     }
 
     public EmbedBuilder generateGiveawayEmbed(Giveaway giveaway) {
-        EmbedBuilder embedBuilder = new EmbedBuilder();
-        embedBuilder.setTitle("Giveaway");
-        embedBuilder.setDescription("React with \uD83C\uDF89 to enter!");
-        embedBuilder.addField("Prize", giveaway.getPrize(), false);
-        embedBuilder.addField("Winners", String.valueOf(giveaway.getWinners()), false);
-        embedBuilder.addField("Ends", giveaway.getGiveawayEnd().toString(), false);
-        embedBuilder.addField("Donor", "<@" + giveaway.getDonorId() + ">", false);
-        return embedBuilder;
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setTitle("New Giveaway!");
+        embed.setColor(Color.ORANGE);
+        embed.addField("Prize", giveaway.getPrize(), true);
+        embed.addField("Winners", String.valueOf(giveaway.getWinners()), true);
+        embed.addField(
+                "Donor",
+                "<@" + giveaway.getDonorId() + ">",
+                false
+        );
+        embed.addField(
+                "Ends",
+                "<t:" + ( giveaway.getGiveawayEnd().getTime() / 1000 ) + ":R>",
+                false
+        );
+        embed.setFooter(String.valueOf(giveaway.getId()));
+        return embed;
+    }
+
+    public GiveawayEntry addGiveawayEntry(Long giveawayId, Member user) {
+        Optional<Giveaway> optionalGiveaway = giveawayRepository.findById(giveawayId);
+        if (optionalGiveaway.isEmpty()) { return null; }
+        Giveaway giveaway = optionalGiveaway.get();
+
+        Long requiredRoleId = giveaway.getRequiredRoleId();
+        return null;
     }
 
 
